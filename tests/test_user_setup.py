@@ -32,25 +32,34 @@ def userSetup():
 # ---------------------------------------------------------------------------
 
 class TestBootImporter:
-    def test_uses_undefined_reload_on_py3(self, userSetup):
-        # BUG: bootImporter does `exec ('import startup.X as tempMod')` then
-        # `reload(tempMod)`. On Py3 `reload` is no longer a builtin (moved
-        # to importlib.reload) and `exec` inside a function does not write
-        # to the function's locals, so `tempMod` is also undefined. Either
-        # way, this raises NameError. Pinning so a port to Py3 surfaces.
+    def test_imports_module_and_calls_start(self, userSetup, monkeypatch):
+        # Stub importlib.reload — hot-reload is a dev-loop side-effect, not
+        # what this test pins. The contract is: import startup.<name>, call
+        # its start().
+        started = []
         fake = types.ModuleType("startup.fake_thing")
-        fake.start = lambda: None
+        fake.start = lambda: started.append("started")
         sys.modules["startup.fake_thing"] = fake
+        monkeypatch.setattr(userSetup.importlib, "reload", lambda m: m)
         try:
             impDic = {
                 "fileName": "fake_thing_startup.py",
                 "importName": "fake_thing",
                 "toolName": "fake_thing",
             }
-            with pytest.raises(NameError):
-                userSetup.bootImporter(impDic)
+            userSetup.bootImporter(impDic)
+            assert started == ["started"]
         finally:
             sys.modules.pop("startup.fake_thing", None)
+
+    def test_propagates_import_error_for_missing_module(self, userSetup):
+        impDic = {
+            "fileName": "no_such_thing_startup.py",
+            "importName": "no_such_thing_xyz_zzz",
+            "toolName": "no_such_thing",
+        }
+        with pytest.raises(ImportError):
+            userSetup.bootImporter(impDic)
 
 
 # ---------------------------------------------------------------------------

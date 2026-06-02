@@ -21,7 +21,7 @@ class Utilities(object):
     def __init__(self):
         pass
 
-    def checkOrMakeFileDirectory(myPath):
+    def checkOrMakeFileDirectory(self, myPath):
         """
         Pass in a path. Check if parent directory exists. If not, make it.
 
@@ -70,22 +70,22 @@ class Utilities(object):
 
         allowedTypes = [str, list]
         if type(directory) not in allowedTypes:
-            cmds.error('Arg directory must be provided a string or list of directories')
+            raise TypeError('Arg directory must be a string or list of directories')
 
         if type(ext) in allowedTypes:
             ext = self.makeTuple(ext)
         else:
-            cmds.error('Arg ext must be provided a string or list of extensions')
+            raise TypeError('Arg ext must be a string or list of extensions')
 
         if type(prefix) in allowedTypes:
             prefix = self.makeTuple(prefix)
         else:
-            cmds.error('Arg prefix must be provided a string or list of prefixes')
+            raise TypeError('Arg prefix must be a string or list of prefixes')
 
         if type(suffix) in allowedTypes:
             suffix = self.makeTuple(suffix)
         else:
-            cmds.error('Arg suffix must be provided a string or list of suffixes')
+            raise TypeError('Arg suffix must be a string or list of suffixes')
 
         if type(directory) is str:
             directory = [directory]

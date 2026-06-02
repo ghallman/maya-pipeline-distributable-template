@@ -17,6 +17,7 @@ May still need to add 3rdParty > plug-ins folder as a plugin path
 # =============================================================================================================================
 """
 
+import importlib
 import logging
 import sys
 
@@ -67,8 +68,8 @@ def bootImporter(impDic):
     # join startup folder with startup file to create import path - startup.XXXXX
     importPath = 'startup.{0}'.format(impDic['importName'])
 
-    exec ('import {0} as tempMod'.format(importPath))
-    reload(tempMod)
+    tempMod = importlib.import_module(importPath)
+    importlib.reload(tempMod)
     tempMod.start()
 
 

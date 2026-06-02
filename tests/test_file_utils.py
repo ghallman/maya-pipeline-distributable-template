@@ -120,12 +120,21 @@ class TestGetFiles:
         with pytest.raises(FileNotFoundError):
             self.u.getFiles(missing)
 
-    def test_invalid_directory_type_triggers_undefined_cmds_bug(self):
-        # BUG: getFiles validates with `cmds.error(...)` but the module never
-        # imports cmds, so invalid args raise NameError instead of the intended
-        # Maya error. Pinning current behaviour; fix should swap this assertion.
-        with pytest.raises(NameError):
+    def test_invalid_directory_type_raises_typeerror(self):
+        with pytest.raises(TypeError, match="directory"):
             self.u.getFiles(12345)
+
+    def test_invalid_ext_type_raises_typeerror(self, tmp_path):
+        with pytest.raises(TypeError, match="ext"):
+            self.u.getFiles(str(tmp_path), ext=12345)
+
+    def test_invalid_prefix_type_raises_typeerror(self, tmp_path):
+        with pytest.raises(TypeError, match="prefix"):
+            self.u.getFiles(str(tmp_path), prefix=12345)
+
+    def test_invalid_suffix_type_raises_typeerror(self, tmp_path):
+        with pytest.raises(TypeError, match="suffix"):
+            self.u.getFiles(str(tmp_path), suffix=12345)
 
 
 # ---------------------------------------------------------------------------
@@ -155,11 +164,12 @@ class TestGetFbxFiles:
 # ---------------------------------------------------------------------------
 
 class TestCheckOrMakeFileDirectory:
+    def setup_method(self):
+        self.u = Utilities()
+
     def test_creates_missing_parent_directory(self, tmp_path):
-        # Workaround: the method is defined without `self`, so call it on the
-        # class. See `test_bound_call_raises_typeerror` below.
         target = tmp_path / "new" / "deep" / "file.txt"
-        result = Utilities.checkOrMakeFileDirectory(str(target))
+        result = self.u.checkOrMakeFileDirectory(str(target))
         assert os.path.isdir(str(tmp_path / "new" / "deep"))
         assert result == str(tmp_path / "new" / "deep")
 
@@ -167,14 +177,6 @@ class TestCheckOrMakeFileDirectory:
         existing = tmp_path / "already_here"
         existing.mkdir()
         target = existing / "file.txt"
-        result = Utilities.checkOrMakeFileDirectory(str(target))
+        result = self.u.checkOrMakeFileDirectory(str(target))
         assert result == str(existing)
 
-    def test_bound_call_raises_typeerror_due_to_missing_self(self, tmp_path):
-        # BUG: declared as `def checkOrMakeFileDirectory(myPath):` with no
-        # `self`, so an instance call passes the instance as `myPath` and
-        # the real path as a second positional arg. Pinning this so a fix
-        # (adding `self` or @staticmethod) surfaces as a test failure.
-        u = Utilities()
-        with pytest.raises(TypeError):
-            u.checkOrMakeFileDirectory(str(tmp_path / "file.txt"))
