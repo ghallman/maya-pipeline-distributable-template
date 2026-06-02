@@ -14,20 +14,12 @@ try:
     from PySide2.QtWidgets import *
     from pyside2uic import compileUi
     from shiboken2 import wrapInstance
-except ImportError:
-    try:
-        from PySide.QtCore import *
-        from PySide.QtGui import *
-        from PySide.QtWidgets import *
-        from pysideuic import compileUi
-        from shiboken import wrapInstance
-    except ImportError:
-        # No PySide stack available — leave the module importable so
-        # other gTools modules can still be loaded outside Maya (e.g. in
-        # CI). loadUiType and MAYAWINDOW become inert until a real Qt
-        # environment is present.
-        compileUi = None
-        wrapInstance = None
+except:
+    from PySide.QtCore import *
+    from PySide.QtGui import *
+    from PySide.QtWidgets import *
+    from pysideuic import compileUi
+    from shiboken import wrapInstance
 
 # maya imports
 from maya import OpenMayaUI as omui
@@ -38,10 +30,7 @@ log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
 
 # constants
-try:
-    MAYAWINDOW = wrapInstance(int(omui.MQtUtil.mainWindow()), QWidget)
-except Exception:
-    MAYAWINDOW = None
+MAYAWINDOW = wrapInstance(int(omui.MQtUtil.mainWindow()), QWidget)
 
 ###################################
 # PYSIDE / QT METHODS
