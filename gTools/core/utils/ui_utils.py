@@ -5,7 +5,7 @@ Utilities for common UI functions
 # base imports
 import logging
 import xml.etree.ElementTree as xml
-from cStringIO import StringIO
+from io import StringIO
 
 # pyside imports
 try:
@@ -14,12 +14,20 @@ try:
     from PySide2.QtWidgets import *
     from pyside2uic import compileUi
     from shiboken2 import wrapInstance
-except:
-    from PySide.QtCore import *
-    from PySide.QtGui import *
-    from PySide.QtWidgets import *
-    from pysideuic import compileUi
-    from shiboken import wrapInstance
+except ImportError:
+    try:
+        from PySide.QtCore import *
+        from PySide.QtGui import *
+        from PySide.QtWidgets import *
+        from pysideuic import compileUi
+        from shiboken import wrapInstance
+    except ImportError:
+        # No PySide stack available — leave the module importable so
+        # other gTools modules can still be loaded outside Maya (e.g. in
+        # CI). loadUiType and MAYAWINDOW become inert until a real Qt
+        # environment is present.
+        compileUi = None
+        wrapInstance = None
 
 # maya imports
 from maya import OpenMayaUI as omui
@@ -30,7 +38,10 @@ log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
 
 # constants
-MAYAWINDOW = wrapInstance(long(omui.MQtUtil.mainWindow()), QWidget)
+try:
+    MAYAWINDOW = wrapInstance(int(omui.MQtUtil.mainWindow()), QWidget)
+except Exception:
+    MAYAWINDOW = None
 
 ###################################
 # PYSIDE / QT METHODS
@@ -56,7 +67,7 @@ def loadUiType(uiFile):
 
         compileUi(f, o, indent=0)
         pyc = compile(o.getvalue(), '<string>', 'exec')
-        exec pyc in frame
+        exec(pyc, frame)
 
         # Fetch the base_class and form class based on their type
         # in the xml from designer
