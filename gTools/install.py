@@ -56,7 +56,10 @@ def onMayaDroppedPythonFile(*args):
         checkOrMakeFileDirectory(target)
         
         if os.path.exists(target):
-            # unlock target file for overwrite
+            # Unlock target for overwrite. On Windows (Maya's target),
+            # stat.S_IWRITE clears the read-only attribute and the file
+            # stays readable. On POSIX it sets owner-write-only, which
+            # is a test-env quirk only since Maya ships on Windows.
             os.chmod(target, stat.S_IWRITE)
             
         # open source mod file using "with" so file operation auto closes after use

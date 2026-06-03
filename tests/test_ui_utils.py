@@ -26,7 +26,8 @@ from core.utils import ui_utils
 def test_module_imports_on_py3():
     # If any Py2-only idiom regresses (`exec X in Y`, `long(...)`, cStringIO)
     # this import itself raises a SyntaxError or NameError.
-    import core.utils.ui_utils  # noqa: F401
+    import core.utils.ui_utils as mod
+    assert mod is not None
 
 
 def test_mayawindow_is_built_from_wrapinstance():

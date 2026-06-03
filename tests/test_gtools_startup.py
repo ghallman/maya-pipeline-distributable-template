@@ -17,6 +17,47 @@ def gtools_startup():
     return gTools_startup
 
 
+class TestMenuSpec:
+    """
+    MENU_SPEC + _buildMenuItems is the Humble-Object split of menuSetup:
+    the spec is pure data (testable with no Maya), the builder is a thin
+    shell tested by the existing menuSetup tests below.
+    """
+
+    def test_spec_contains_expected_entries(self, gtools_startup):
+        labels = [item["label"] for item in gtools_startup.MENU_SPEC]
+        assert labels == ["Art", "Animation", "Tech", "Rigging", "Skinning"]
+
+    def test_dividers_and_submenus_are_correctly_typed(self, gtools_startup):
+        kinds = {
+            item["label"]: ("divider" if item.get("divider") else "subMenu")
+            for item in gtools_startup.MENU_SPEC
+        }
+        assert kinds == {
+            "Art": "divider",
+            "Animation": "subMenu",
+            "Tech": "divider",
+            "Rigging": "subMenu",
+            "Skinning": "subMenu",
+        }
+
+    def test_build_menu_items_calls_cmds_with_spec(self, gtools_startup, monkeypatch):
+        captured = []
+        monkeypatch.setattr(
+            gtools_startup.cmds,
+            "menuItem",
+            lambda **kw: captured.append(kw),
+        )
+        gtools_startup._buildMenuItems("PARENT", gtools_startup.MENU_SPEC)
+        assert len(captured) == len(gtools_startup.MENU_SPEC)
+        assert all(kw["parent"] == "PARENT" for kw in captured)
+        # Dividers and submenus translate to the matching cmds.menuItem kwarg.
+        art = next(kw for kw in captured if kw["label"] == "Art")
+        animation = next(kw for kw in captured if kw["label"] == "Animation")
+        assert art.get("divider") is True
+        assert animation.get("subMenu") is True
+
+
 class TestMenuSetup:
     def test_creates_top_level_menu_when_parent_exists(self, gtools_startup, monkeypatch):
         menu_calls = []

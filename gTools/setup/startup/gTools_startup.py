@@ -35,6 +35,30 @@ def importModule():
 ## Menu Methods ##
 ########################
 # TODO: set core menu name as a constant so it can be more easily changed
+# MENU_SPEC is the data definition of the gTools menu's contents. Keeping
+# it as plain data (not a sequence of cmds.menuItem calls) means it can be
+# unit-tested without Maya. _buildMenuItems is the thin shell that walks
+# the spec and makes the side-effecting cmds calls.
+MENU_SPEC = (
+    {'label': 'Art', 'divider': True},
+    {'label': 'Animation', 'subMenu': True},
+    {'label': 'Tech', 'divider': True},
+    {'label': 'Rigging', 'subMenu': True},
+    {'label': 'Skinning', 'subMenu': True},
+)
+
+
+def _buildMenuItems(parentMenu, spec):
+    """Render a MENU_SPEC entry list under the given parent menu."""
+    for item in spec:
+        kwargs = {'parent': parentMenu, 'label': item['label']}
+        if item.get('divider'):
+            kwargs['divider'] = True
+        if item.get('subMenu'):
+            kwargs['subMenu'] = True
+        cmds.menuItem(**kwargs)
+
+
 def menuSetup(parent='MayaWindow'):#Make "parent" more dynamic later
 
     # if menu exists, delete
@@ -48,14 +72,8 @@ def menuSetup(parent='MayaWindow'):#Make "parent" more dynamic later
         cmds.warning('gTools Menu failed to find parent (Likely "MayaWindow"')
         #if we error this method here, does it not kill the boot process overall?
 
-    if gToolsMenu: 
-        # Fill menus
-        artDiv = cmds.menuItem(parent=gToolsMenu, label="Art", divider=True)
-        animMenu = cmds.menuItem(parent=gToolsMenu, label="Animation", subMenu=True)
-        techDiv = cmds.menuItem(parent=gToolsMenu, label="Tech", divider=True)
-        rigMenu = cmds.menuItem(parent=gToolsMenu, label="Rigging", subMenu=True)
-        skinningMenu = cmds.menuItem(parent=gToolsMenu, label="Skinning", subMenu=True)
-        
+    if gToolsMenu:
+        _buildMenuItems(gToolsMenu, MENU_SPEC)
     else:
         cmds.warning('gTools parent menu does not exist')
 
