@@ -91,6 +91,13 @@ class TestOnMayaDroppedPythonFile:
         os.chmod(str(target), stat.S_IREAD)
         try:
             install_module.onMayaDroppedPythonFile()
+            # install.py chmod's the target to S_IWRITE before overwriting,
+            # which on POSIX leaves the file owner-write-only. Restore the
+            # read bit so we can verify the new content. On Windows (the
+            # installer's actual target) S_IWRITE just clears the read-only
+            # attribute and the file remains readable, so this restore is a
+            # POSIX-test-env concern, not a production one.
+            os.chmod(str(target), stat.S_IREAD | stat.S_IWRITE)
             contents = target.read_text()
             assert "STALE CONTENT" not in contents
             assert str(src) in contents
