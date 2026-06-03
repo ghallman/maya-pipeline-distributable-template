@@ -176,6 +176,42 @@ class TestBootLoader:
 
 
 # ---------------------------------------------------------------------------
+# End-to-end boot smoke test (Spring contextLoads-equivalent)
+# ---------------------------------------------------------------------------
+
+class TestBootSmoke:
+    def test_bootloader_drives_full_pipeline_to_menu_creation(
+        self, userSetup, monkeypatch
+    ):
+        """
+        Spring `contextLoads()`-style smoke: run the boot pipeline end-to-end
+        with no module-level fakes and assert the gTools menu actually got
+        built. Catches regressions in the seams between userSetup -> bootCore
+        -> bootImporter -> gTools_startup.start -> menuSetup that the
+        per-branch unit tests can't see.
+        """
+        import maya.cmds as cmds
+
+        menu_create_calls = []
+
+        def _menu(*args, **kwargs):
+            if kwargs.get("exists"):
+                return False
+            menu_create_calls.append(kwargs)
+            return "gToolsMenu"
+
+        monkeypatch.setattr(cmds, "menu", _menu)
+        monkeypatch.setattr(cmds, "menuItem", lambda *a, **kw: None)
+
+        userSetup.bootLoader()
+
+        assert any(kw.get("l") == "gTools" for kw in menu_create_calls), (
+            "expected the full boot pipeline to reach menuSetup and create "
+            "the gTools menu"
+        )
+
+
+# ---------------------------------------------------------------------------
 # Module-level wiring
 # ---------------------------------------------------------------------------
 

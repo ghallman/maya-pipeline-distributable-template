@@ -26,7 +26,7 @@ jobs:
       - name: Install test dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install pytest pytest-cov
+          python -m pip install pytest pytest-cov diff-cover
 
       - name: Run tests with coverage
         run: |
@@ -35,6 +35,20 @@ jobs:
             --cov-report=term-missing \
             --cov-report=xml \
             -ra
+
+      # Diff-cover enforces coverage on the lines this PR actually changes,
+      # not on the whole codebase. 70% matches Azure DevOps' default for
+      # changed-lines coverage (Microsoft Learn:
+      # https://learn.microsoft.com/azure/devops/pipelines/test/review-code-coverage-results).
+      # Avoids the gaming problem Marick warned about with global thresholds
+      # while still preventing silent regressions on new code.
+      - name: Enforce 70% coverage on changed lines (PRs only)
+        if: github.event_name == 'pull_request'
+        run: |
+          git fetch --no-tags --depth=1 origin "${{ github.base_ref }}"
+          diff-cover coverage.xml \
+            --compare-branch="origin/${{ github.base_ref }}" \
+            --fail-under=70
 
       - name: Upload coverage XML
         if: always()
