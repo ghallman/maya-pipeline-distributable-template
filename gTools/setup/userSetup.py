@@ -17,6 +17,7 @@ May still need to add 3rdParty > plug-ins folder as a plugin path
 # =============================================================================================================================
 """
 
+import importlib
 import logging
 import sys
 
@@ -47,6 +48,15 @@ except:
 modulepath = returnpath.getpath()
 sys.path.append(modulepath)
 
+# Now that the pipeline root is importable, re-point the logger at the configured
+# brand tag (falls back to 'gTools' if brand config is unavailable).
+try:
+    import brand
+    log = logging.getLogger(brand.get('logger_tag', 'gTools'))
+    log.setLevel(logging.INFO)
+except Exception:
+    pass
+
 ########################
 ## Boot Methods ##
 ########################
@@ -67,8 +77,9 @@ def bootImporter(impDic):
     # join startup folder with startup file to create import path - startup.XXXXX
     importPath = 'startup.{0}'.format(impDic['importName'])
 
-    exec ('import {0} as tempMod'.format(importPath))
-    reload(tempMod)
+    # py3: importlib replaces the py2 `exec('import ...')` + builtin reload().
+    tempMod = importlib.import_module(importPath)
+    importlib.reload(tempMod)
     tempMod.start()
 
 

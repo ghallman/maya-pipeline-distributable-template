@@ -1,0 +1,12 @@
+# Python bytecode
+__pycache__/
+*.py[cod]
+
+# Dev-mode pipeline data (asset DB, caches, user state) - see gTools/core/config.py
+_data/
+
+# Installer-written runtime config (mode/install paths)
+pipeline.cfg
+
+# Local brand override (uncomment to keep customer brand out of source control)
+# gTools/brand.json

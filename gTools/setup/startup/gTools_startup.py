@@ -11,8 +11,13 @@ import logging
 import maya.cmds as cmds
 import maya.mel as mel
 
+## Brand (single source of truth for user-visible names) ##
+import brand
+MENU_OBJ = '{0}Menu'.format(brand.get('name', 'gTools'))   # internal Maya UI name
+MENU_LABEL = brand.get('menu_label', 'gTools')             # human-facing label
+
 ## Logging ##
-packName = 'gTools'
+packName = brand.get('logger_tag', 'gTools')
 logging.basicConfig()
 #log = logging.getLogger(__name__)
 log = logging.getLogger(packName)
@@ -31,33 +36,34 @@ import core
 def importModule():
     pass
     
-######################## 
+########################
 ## Menu Methods ##
 ########################
-# TODO: set core menu name as a constant so it can be more easily changed
+# Menu name/label come from the brand config (MENU_OBJ / MENU_LABEL above).
 def menuSetup(parent='MayaWindow'):#Make "parent" more dynamic later
 
     # if menu exists, delete
-    if cmds.menu('gToolsMenu', exists=True):
-        cmds.deleteUI('gToolsMenu')
+    if cmds.menu(MENU_OBJ, exists=True):
+        cmds.deleteUI(MENU_OBJ)
 
     # Try to create menu
+    gToolsMenu = None
     try:
-        gToolsMenu = cmds.menu('gToolsMenu', l="gTools", p=parent, tearOff=True, allowOptionBoxes=True)
+        gToolsMenu = cmds.menu(MENU_OBJ, l=MENU_LABEL, p=parent, tearOff=True, allowOptionBoxes=True)
     except:
-        cmds.warning('gTools Menu failed to find parent (Likely "MayaWindow"')
+        cmds.warning('{0} menu failed to find parent (Likely "MayaWindow")'.format(MENU_LABEL))
         #if we error this method here, does it not kill the boot process overall?
 
-    if gToolsMenu: 
+    if gToolsMenu:
         # Fill menus
         artDiv = cmds.menuItem(parent=gToolsMenu, label="Art", divider=True)
         animMenu = cmds.menuItem(parent=gToolsMenu, label="Animation", subMenu=True)
         techDiv = cmds.menuItem(parent=gToolsMenu, label="Tech", divider=True)
         rigMenu = cmds.menuItem(parent=gToolsMenu, label="Rigging", subMenu=True)
         skinningMenu = cmds.menuItem(parent=gToolsMenu, label="Skinning", subMenu=True)
-        
+
     else:
-        cmds.warning('gTools parent menu does not exist')
+        cmds.warning('{0} parent menu does not exist'.format(MENU_LABEL))
 
 ######################## 
 ## Boot Method ##
@@ -82,8 +88,9 @@ def start():
 ########################
 def _some_menu_cb(*args):
     """
+    import importlib
     import core.xxxx.xxxx as x
-    reload(x)
+    importlib.reload(x)
     x.some_function()
     """
     pass

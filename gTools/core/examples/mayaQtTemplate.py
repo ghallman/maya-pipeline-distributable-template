@@ -13,10 +13,8 @@ temp.show()
 # base imports
 import os
 
-# pyside imports
-from PySide2.QtCore import *
-from PySide2.QtGui import *
-from PySide2.QtWidgets import *
+# pyside imports (PySide2/PySide6 via the qt shim)
+from core.utils.qt import *
 
 # maya imports
 from maya import cmds
