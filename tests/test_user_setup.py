@@ -2,14 +2,10 @@
 Tests for gTools/setup/userSetup.py
 
 userSetup orchestrates the Maya-side boot:
-  - `bootImporter(impDic)` — dynamically imports & runs a startup module.
-  - `bootCore()` — boots the core startup, returns True/False.
-  - `bootStartups()` — iterates additional startups, swallows per-entry failures.
-  - `bootLoader()` — top-level orchestrator that gates on `startupImported`.
-
-The file uses Python 2 idioms (`exec ('...')` then `reload(tempMod)`) that
-are broken on Python 3. The bootImporter test pins this so a future port
-surfaces here.
+  - bootImporter(impDic) — dynamically imports & runs a startup module.
+  - bootCore() — boots the core startup, returns True/False.
+  - bootStartups() — iterates additional startups, swallows per-entry failures.
+  - bootLoader() — top-level orchestrator that gates on startupImported.
 """
 
 import importlib
@@ -33,14 +29,15 @@ def userSetup():
 
 class TestBootImporter:
     def test_imports_module_and_calls_start(self, userSetup, monkeypatch):
-        # Stub importlib.reload — hot-reload is a dev-loop side-effect, not
-        # what this test pins. The contract is: import startup.<name>, call
-        # its start().
+        # Stub the module-local _reload seam — hot-reload is a dev-loop
+        # side-effect, not what this test pins. Patching userSetup._reload
+        # (instead of userSetup.importlib.reload) avoids mutating the global
+        # importlib module for the duration of the test.
         started = []
         fake = types.ModuleType("startup.fake_thing")
         fake.start = lambda: started.append("started")
         sys.modules["startup.fake_thing"] = fake
-        monkeypatch.setattr(userSetup.importlib, "reload", lambda m: m)
+        monkeypatch.setattr(userSetup, "_reload", lambda m: m)
         try:
             impDic = {
                 "fileName": "fake_thing_startup.py",

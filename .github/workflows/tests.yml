@@ -48,8 +48,9 @@ jobs:
       # while still preventing silent regressions on new code.
       - name: Enforce 70% coverage on changed lines (PRs only)
         if: github.event_name == 'pull_request'
+        # fetch-depth: 0 above already pulled origin/<base_ref>, so no extra
+        # `git fetch` is needed before diff-cover.
         run: |
-          git fetch --no-tags origin "${{ github.base_ref }}"
           diff-cover coverage.xml \
             --compare-branch="origin/${{ github.base_ref }}" \
             --fail-under=70

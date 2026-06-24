@@ -49,14 +49,13 @@ MENU_SPEC = (
 
 
 def _buildMenuItems(parentMenu, spec):
-    """Render a MENU_SPEC entry list under the given parent menu."""
+    """Render a MENU_SPEC entry list under the given parent menu.
+
+    Each spec entry is unpacked directly into cmds.menuItem, so adding
+    new menu flags only requires touching MENU_SPEC.
+    """
     for item in spec:
-        kwargs = {'parent': parentMenu, 'label': item['label']}
-        if item.get('divider'):
-            kwargs['divider'] = True
-        if item.get('subMenu'):
-            kwargs['subMenu'] = True
-        cmds.menuItem(**kwargs)
+        cmds.menuItem(parent=parentMenu, **item)
 
 
 def menuSetup(parent='MayaWindow'):#Make "parent" more dynamic later
@@ -65,12 +64,13 @@ def menuSetup(parent='MayaWindow'):#Make "parent" more dynamic later
     if cmds.menu('gToolsMenu', exists=True):
         cmds.deleteUI('gToolsMenu')
 
-    # Try to create menu
+    # Try to create menu. Pre-bind gToolsMenu so the except below can't
+    # leave it unbound and trip an UnboundLocalError on the next branch.
+    gToolsMenu = None
     try:
         gToolsMenu = cmds.menu('gToolsMenu', l="gTools", p=parent, tearOff=True, allowOptionBoxes=True)
     except:
         cmds.warning('gTools Menu failed to find parent (Likely "MayaWindow"')
-        #if we error this method here, does it not kill the boot process overall?
 
     if gToolsMenu:
         _buildMenuItems(gToolsMenu, MENU_SPEC)

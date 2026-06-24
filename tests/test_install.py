@@ -89,22 +89,14 @@ class TestOnMayaDroppedPythonFile:
         target = target_dir / "gTools.mod"
         target.write_text("STALE CONTENT")
         os.chmod(str(target), stat.S_IREAD)
-        try:
-            install_module.onMayaDroppedPythonFile()
-            # install.py chmod's the target to S_IWRITE before overwriting,
-            # which on POSIX leaves the file owner-write-only. Restore the
-            # read bit so we can verify the new content. On Windows (the
-            # installer's actual target) S_IWRITE just clears the read-only
-            # attribute and the file remains readable, so this restore is a
-            # POSIX-test-env concern, not a production one.
-            os.chmod(str(target), stat.S_IREAD | stat.S_IWRITE)
-            contents = target.read_text()
-            assert "STALE CONTENT" not in contents
-            assert str(src) in contents
-        finally:
-            # Ensure tmp cleanup can remove the file.
-            if target.exists():
-                os.chmod(str(target), stat.S_IWRITE | stat.S_IREAD)
+
+        install_module.onMayaDroppedPythonFile()
+
+        # install.py unlocks the target with S_IWRITE | S_IREAD, so the new
+        # contents are readable on POSIX as well as Windows.
+        contents = target.read_text()
+        assert "STALE CONTENT" not in contents
+        assert str(src) in contents
 
     def test_shows_success_dialog(self, install_env, monkeypatch):
         install_module, _, _ = install_env

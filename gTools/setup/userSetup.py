@@ -29,6 +29,10 @@ logging.basicConfig()
 log = logging.getLogger('gTools')
 log.setLevel(logging.INFO)
 
+# Bound as a module attribute so tests can patch reload locally instead
+# of mutating the global importlib module.
+_reload = importlib.reload
+
 # Try to import Startup Module (Startup Folder)
 try:
     import startup
@@ -69,7 +73,7 @@ def bootImporter(impDic):
     importPath = 'startup.{0}'.format(impDic['importName'])
 
     tempMod = importlib.import_module(importPath)
-    importlib.reload(tempMod)
+    _reload(tempMod)
     tempMod.start()
 
 

@@ -1,15 +1,6 @@
 """
-Tests for gTools/core/utils/file_utils.py
-
-These exercise the Utilities class with real files written to pytest's
-tmp_path. They also document several existing defects so that any future
-fix produces a visible test-failure signal:
-
-  * `Utilities.checkOrMakeFileDirectory` is declared without `self`, so
-    calling it on an instance raises TypeError.
-  * `Utilities.getFiles` calls `cmds.error(...)` for invalid args, but
-    `cmds` is never imported into this module, so the validation paths
-    raise NameError instead of the intended Maya error.
+Tests for gTools/core/utils/file_utils.py — exercise the Utilities class
+against real files via pytest's tmp_path.
 """
 
 import os
