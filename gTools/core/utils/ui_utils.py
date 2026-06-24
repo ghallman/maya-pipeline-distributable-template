@@ -5,7 +5,7 @@ Utilities for common UI functions
 # base imports
 import logging
 import xml.etree.ElementTree as xml
-from cStringIO import StringIO
+from io import StringIO
 
 # pyside imports
 try:
@@ -30,7 +30,7 @@ log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
 
 # constants
-MAYAWINDOW = wrapInstance(long(omui.MQtUtil.mainWindow()), QWidget)
+MAYAWINDOW = wrapInstance(int(omui.MQtUtil.mainWindow()), QWidget)
 
 ###################################
 # PYSIDE / QT METHODS
@@ -56,7 +56,7 @@ def loadUiType(uiFile):
 
         compileUi(f, o, indent=0)
         pyc = compile(o.getvalue(), '<string>', 'exec')
-        exec pyc in frame
+        exec(pyc, frame)
 
         # Fetch the base_class and form class based on their type
         # in the xml from designer

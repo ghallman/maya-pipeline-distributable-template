@@ -56,8 +56,10 @@ def onMayaDroppedPythonFile(*args):
         checkOrMakeFileDirectory(target)
         
         if os.path.exists(target):
-            # unlock target file for overwrite
-            os.chmod(target, stat.S_IWRITE)
+            # Unlock target for overwrite. Include S_IREAD so the rewritten
+            # .mod file remains readable on POSIX (S_IWRITE alone would
+            # leave it owner-write-only and Maya could not read it back).
+            os.chmod(target, stat.S_IWRITE | stat.S_IREAD)
             
         # open source mod file using "with" so file operation auto closes after use
         # read text mode

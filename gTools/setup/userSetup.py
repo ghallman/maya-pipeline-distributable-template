@@ -17,6 +17,7 @@ May still need to add 3rdParty > plug-ins folder as a plugin path
 # =============================================================================================================================
 """
 
+import importlib
 import logging
 import sys
 
@@ -27,6 +28,10 @@ import returnpath
 logging.basicConfig()
 log = logging.getLogger('gTools')
 log.setLevel(logging.INFO)
+
+# Bound as a module attribute so tests can patch reload locally instead
+# of mutating the global importlib module.
+_reload = importlib.reload
 
 # Try to import Startup Module (Startup Folder)
 try:
@@ -67,8 +72,8 @@ def bootImporter(impDic):
     # join startup folder with startup file to create import path - startup.XXXXX
     importPath = 'startup.{0}'.format(impDic['importName'])
 
-    exec ('import {0} as tempMod'.format(importPath))
-    reload(tempMod)
+    tempMod = importlib.import_module(importPath)
+    _reload(tempMod)
     tempMod.start()
 
 

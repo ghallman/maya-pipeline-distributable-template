@@ -9,6 +9,12 @@ temp = temp.MyWindow() # instance the UI object
 temp.show()
 ================================================================
 # todo: add check for if window exists
+# todo: replace this template with a PySide-only version that builds
+#       the UI in pure Python — no .ui file, no loadUiType/compileUi,
+#       no xml.etree dependency. This will also let us drop the Qt
+#       Designer toolchain from gTools (ui_utils.loadUiType + the
+#       pyside2uic / xml import surface) once nothing else uses it.
+#       Leaving this file uncovered by tests until the rewrite.
 """
 # base imports
 import os
